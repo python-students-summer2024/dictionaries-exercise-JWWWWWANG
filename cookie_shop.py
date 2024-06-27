@@ -16,6 +16,20 @@ def bake_cookies(filepath):
     :returns: A list of all cookie data, where each cookie is represented as a dictionary.
     """
     # write your code for this function below here.
+    with open(filepath, 'r') as file:
+        next(file)
+        cookies = []
+        for line in file:
+            data = line.strip().split(',')
+            price = float(data[3].strip("$"))
+            cookie_data = {
+                "id": int(data[0]),
+                "title": data[1],
+                "description": data[2],
+                "price": price
+            }
+            cookies.append(cookie_data)
+    return cookies
 
 
 def welcome():
@@ -27,6 +41,8 @@ def welcome():
 
     """
     # write your code for this function below this line
+    print("\nWelcome to the Python Cookie Shop!\nWe feed each according to their need.\n")
+
 
 
 def display_cookies(cookies):
@@ -48,6 +64,11 @@ def display_cookies(cookies):
     :param cookies: a list of all cookies in the shop, where each cookie is represented as a dictionary.
     """
     # write your code for this function below this line
+    print("Here are the cookies we have in the shop for you:\n")
+    for cookie in cookies:
+        print(f"#{cookie['id']} - {cookie['title']}")
+        print(cookie.get("description", ""), "\n")
+        print(f"Price: ${cookie['price']:.2f}\n")
 
 
 def get_cookie_from_dict(id, cookies):
@@ -59,6 +80,10 @@ def get_cookie_from_dict(id, cookies):
     :returns: the matching cookie, as a dictionary
     """
     # write your code for this function below this line
+    for cookie in cookies:
+        if cookie["id"] == id:
+         return cookie
+    return None
 
 
 def solicit_quantity(id, cookies):
@@ -77,7 +102,17 @@ def solicit_quantity(id, cookies):
     :returns: The quantity the user entered, as an integer.
     """
     # write your code for this function below this line
-
+    cookie = get_cookie_from_dict(id, cookies)
+    if not cookie:
+      print(f"Invalid cookie ID: {id}")
+      return None
+    
+    while True:
+      quantity_input = input(f"My favorite! How many {cookie['title']} would you like? ")
+      if not quantity_input.isdigit() or int(quantity_input) <= 0:
+        print("Please enter a positive integer quantity.")
+      else:
+        return int(quantity_input)
 
 def solicit_order(cookies):
     """
@@ -96,6 +131,15 @@ def solicit_order(cookies):
     :returns: A list of the ids and quantities of each cookies the user wants to order.
     """
     # write your code for this function below this line
+    order = []
+    while True:
+       cookie_id = input('''Please enter the number of any cookie you would like to purchase (type "finished" if finished with your order): ''')
+       if cookie_id in ("finished", "done", "quit", "exit"):
+          break
+       quantity = solicit_quantity(int(cookie_id), cookies)
+       if quantity:
+          order.append({"id": int(cookie_id), "quantity": quantity})
+    return order
 
 
 def display_order_total(order, cookies):
@@ -118,6 +162,18 @@ def display_order_total(order, cookies):
 
     """
     # write your code for this function below this line
+    print("\nThank you for your order. You have ordered:\n")
+    total = 0
+    for item in order:
+       cookie = get_cookie_from_dict(item["id"], cookies)
+       if cookie:
+          quantity = item["quantity"]
+          price = cookie["price"]
+          total += quantity * price
+          print(f"-{quantity} {cookie['title']}")
+          print(f"\t${price:.2f} each\n") 
+    print(f"Your total is ${total:.2f}.\n")
+    print("Please pay with Bitcoin before picking-up.\nThank you!\n-The Python Cookie Shop Robot.")
 
 
 def run_shop(cookies):
@@ -130,6 +186,18 @@ def run_shop(cookies):
     """
     # write your code for this function below here.
     welcome()
-    display_cookies(cookies)
-    order = solicit_order(cookies)
-    display_order_total(order, cookies)
+    order = []
+
+    while True:
+        display_cookies(cookies)
+        cookie_id = input('''\nEnter the ID of the cookie you would like to purchase (or "finished", "done", "quit", "exit" to quit): ''')
+        if cookie_id.lower() in ("finished", "done", "quit", "exit"):
+          break
+        quantity = solicit_quantity(int(cookie_id), cookies)
+        if quantity:
+          order.append({"id": int(cookie_id), "quantity": quantity})
+
+    if order:
+      display_order_total(order, cookies)
+    else:
+      print("See you next time!\n")
